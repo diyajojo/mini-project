@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import image
+# from app.routers import image
 
 app = FastAPI(
     title="__ API",
@@ -26,7 +26,7 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(image.router, prefix="/api/image", tags=["Image"])
+# app.include_router(image.router, prefix="/api/image", tags=["Image"])
 
 @app.get("/")
 def read_root():
