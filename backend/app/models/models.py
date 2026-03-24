@@ -28,3 +28,17 @@ class Job(SQLModel, table=True):
     fit_reasoning: Optional[str] = None  # Groq explanation
     status: str = Field(default="pending")  # pending | scored | applied
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class JobSearch(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id")
+    title: str
+    location: str
+    task_id: str = Field(default="")  # Celery task UUID, set after enqueue
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class JobSearchResult(SQLModel, table=True):
+    search_id: int = Field(foreign_key="jobsearch.id", primary_key=True)
+    job_id: int = Field(foreign_key="job.id", primary_key=True)

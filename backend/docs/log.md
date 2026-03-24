@@ -32,18 +32,19 @@
 |---|---------|-------------|
 | 6 | `uv add docling python-multipart` | Adds Docling (PDF → Markdown) and multipart form support for file uploads |
 
-## Phase 2 Complete — Files Created
+## Phase 2 Complete — Files Created / Modified
 
-| File | Purpose |
-|------|---------|
-| `app/services/parsing.py` | `ParsingService` — Docling: PDF bytes → Markdown string |
-| `app/services/discovery.py` | `DiscoveryService` — Apify actor trigger → list of job postings |
-| `app/worker/celery_app.py` | Celery app initialized with Redis broker/backend |
-| `app/worker/tasks.py` | `parse_resume_task` and `discover_jobs_task` Celery tasks |
-| `app/api/resumes.py` | `POST /resumes/upload`, `GET /resumes/{id}` |
-| `app/api/jobs.py` | `POST /jobs/discover`, `GET /jobs/` |
-| `app/core/config.py` | Added `APIFY_ACTOR_ID` and `LLM_MODEL` settings |
-| `app/main.py` | Registered resumes and jobs routers |
+| File | Status | Purpose |
+|------|--------|---------|
+| `app/services/parsing.py` | Created | `ParsingService` — Docling: PDF bytes → Markdown string |
+| `app/services/discovery.py` | Created → Modified | `DiscoveryService` — Apify actor trigger → list of job postings; actor switched to `curious_coder/linkedin-jobs-scraper`, input changed to `urls`, field mapping fixed (`link`, `companyName`, `descriptionText`) |
+| `app/worker/celery_app.py` | Created | Celery app initialized with Redis broker/backend |
+| `app/worker/tasks.py` | Created → Modified | `parse_resume_task` and `discover_jobs_task`; task updated to accept `search_id`, deduplicate by URL, write `JobSearchResult` links |
+| `app/api/resumes.py` | Created | `POST /resumes/upload`, `GET /resumes/{id}` |
+| `app/api/jobs.py` | Created → Modified | `POST /jobs/discover` (returns `search_id`), `GET /jobs/` (filterable by `search_id`), `GET /jobs/discover/{task_id}/status` (new) |
+| `app/core/config.py` | Modified | Added `APIFY_ACTOR_ID` (`curious_coder/linkedin-jobs-scraper`) and `LLM_MODEL` settings |
+| `app/main.py` | Modified | Registered resumes and jobs routers |
+| `app/models/models.py` | Modified | Added `JobSearch` and `JobSearchResult` models |
 
 ---
 
@@ -140,18 +141,88 @@ Task parse_resume_task succeeded in 2.46s
 
 ### Apify actor free trial expired on `POST /jobs/discover`
 
-**Status:** ⚠️ Unresolved — to be investigated.
+**Status:** ✅ Resolved
 
 **Observed:** `discover_jobs_task` retried 3 times then gave up with:
 ```
 ApifyApiError: You must rent a paid Actor in order to run it after its free trial
 has expired. To rent this Actor, go to https://console.apify.com/actors/BHzefUZlZRKWxkTck
 ```
-London
+
 **When:** Called `POST /jobs/discover` with `{"user_id": 1, "title": "software engineer intern", "location": "kochi,india", "limit": 5}`.
 
-**Likely cause:** The Apify actor `bebity/linkedin-jobs-scraper` (set as `APIFY_ACTOR_ID` in `.env`) has a free trial that has expired. Apify's paid actors require an active rental to run beyond the trial period.
+**Cause:** The Apify actor `bebity/linkedin-jobs-scraper` has a free trial that had expired. Apify's paid actors require an active rental to run beyond the trial period.
 
-**To investigate:**
-- Check the actor's rental status at `https://console.apify.com/actors/BHzefUZlZRKWxkTck`
-- Look for a free alternative actor on Apify Store, or switch `APIFY_ACTOR_ID` in `.env` to a different LinkedIn jobs scraper that is free/included in the monthly credits
+**Fix:** Switched `APIFY_ACTOR_ID` in `app/core/config.py` to `curious_coder/linkedin-jobs-scraper`, a free actor available within Apify's monthly credits. Also updated `DiscoveryService.discover()` to build a LinkedIn job search URL and pass it as `urls` (a plain string list), which is the input format this actor expects.
+
+**Files changed:** `app/core/config.py`, `app/services/discovery.py`
+
+---
+
+### Wrong input field — `Field input.urls is required`
+
+**Status:** ✅ Resolved
+
+**Observed:** After switching to `curious_coder/linkedin-jobs-scraper`, the task kept retrying with:
+```
+ApifyApiError: Input is not valid: Field input.urls is required
+```
+
+**Cause:** The original `DiscoveryService` was passing `queries` as the run input, which was the schema for the old `bebity` actor. The new actor requires `urls` — a list of LinkedIn job search page URLs.
+
+**Fix:** Updated `app/services/discovery.py` to construct a LinkedIn search URL from `title` and `location` using `urllib.parse.quote_plus`, and pass it as `urls: [search_url]`.
+
+**Files changed:** `app/services/discovery.py`
+
+---
+
+### Job `url` field empty in `GET /jobs/` response
+
+**Status:** ✅ Resolved
+
+**Observed:** Jobs were scraped and saved successfully but `url` was always `""` in the API response.
+
+**Cause:** The field mapping in `DiscoveryService` was calling `item.get("url", item.get("jobUrl", ""))`. The `curious_coder/linkedin-jobs-scraper` actor does not return a field named `url` or `jobUrl` — the job link is under the key `link`.
+
+**Discovered by:** Adding a temporary `logging.warning("RAW ITEM KEYS: %s", ...)` log to inspect the dataset item returned by the actor. Output confirmed the correct field names: `link` (job URL), `companyName`, `descriptionText`.
+
+**Fix:** Updated the field mapping in `DiscoveryService`:
+- `url` → `item.get("link", "")`
+- `company` → `item.get("companyName", "")`
+- `description` → `item.get("descriptionText", "")`
+
+**Files changed:** `app/services/discovery.py`
+
+---
+
+## Phase 3 — Task Status, Search Sessions & Deduplication
+
+### Feature: Task status endpoint, search session tracking, job deduplication
+
+**Problem:**
+- `POST /jobs/discover` returned `{task_id, status}` but there was no way to poll whether the task had finished
+- Jobs had no association to the search that produced them — couldn't filter `GET /jobs/` by a specific search
+- Running discover twice with the same query inserted duplicate `Job` rows for the same URL
+
+**Design decision — link table vs `search_id` on `Job`:**
+
+Adding `search_id` directly to `Job` was considered (simpler, no new tables). Rejected because deduplication conflicts with it: if a job URL already exists, you can either update its `search_id` (losing the original search link) or skip it (losing the link to the new search). A many-to-many link table solves both.
+
+**New models:**
+- `JobSearch` — one row per discover call (`id, user_id, title, location, task_id, created_at`)
+- `JobSearchResult` — link table with composite PK (`search_id, job_id`); a job can belong to many searches
+
+**No Alembic migration needed:** project uses `SQLModel.metadata.create_all(engine)` on startup (`app/core/db.py`), which auto-creates new tables. Alembic is for production incremental migrations; `create_all` is sufficient for local dev.
+
+**API changes:**
+- `POST /jobs/discover` — creates `JobSearch` in DB before enqueue, returns `{task_id, search_id, status: "discovering"}`
+- `GET /jobs/discover/{task_id}/status` — new; queries `celery_app.AsyncResult(task_id).state`, returns `{task_id, state}` (PENDING / STARTED / RETRY / FAILURE / SUCCESS)
+- `GET /jobs/` — gained optional `search_id` query param; joins through `JobSearchResult` when provided
+
+**Worker changes (`discover_jobs_task`):**
+- Accepts `search_id` param
+- For each scraped job: checks if `(user_id, url)` already exists → reuses existing job row if so, inserts new one if not
+- Writes `JobSearchResult(search_id, job_id)` for every job regardless (new or reused)
+- Uses `session.merge()` for the link row so it's idempotent on retry
+
+**Files changed:** `app/models/models.py`, `app/api/jobs.py`, `app/worker/tasks.py`
