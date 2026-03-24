@@ -33,10 +33,21 @@ This handles everything:
 - Starts Docker containers (`db`, `redis`)
 - Runs DB migrations (`alembic upgrade head`)
 
-## Step 4 — Start the API server
+## Step 4 — Start the API server and Celery worker
+
+You need **two separate terminals** for this step.
+
+**Terminal 1 — API server:**
 ```bash
 uv run uvicorn app.main:app --reload
 ```
+
+**Terminal 2 — Celery worker:**
+```bash
+uv run celery -A app.worker.celery_app worker --loglevel=info
+```
+
+The Celery worker handles async tasks (resume parsing, job scraping, scoring). Both must be running for the full system to work.
 
 ## Step 5 — Verify
 ```bash

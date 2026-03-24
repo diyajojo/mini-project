@@ -52,10 +52,21 @@ uv run alembic upgrade head
 ```
 This creates the `user`, `resume`, and `job` tables in Postgres.
 
-## Step 6 — Start the API server
+## Step 6 — Start the API server and Celery worker
+
+You need **two separate terminals** for this step.
+
+**Terminal 1 — API server:**
 ```bash
 uv run uvicorn app.main:app --reload
 ```
+
+**Terminal 2 — Celery worker:**
+```bash
+uv run celery -A app.worker.celery_app worker --loglevel=info
+```
+
+The Celery worker handles async tasks like resume parsing, job scraping, and scoring. Both must be running for the full system to work.
 
 ## Step 7 — Verify it's working
 Open your browser or run:
