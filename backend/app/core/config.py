@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     APIFY_API_TOKEN: str = ""
     APIFY_ACTOR_ID: str = "curious_coder/linkedin-jobs-scraper"
     LLM_MODEL: str = "llama-3.3-70b-versatile"
+    SCORING_MODEL: str = "llama-3.1-8b-instant"
 
 
 settings = Settings()

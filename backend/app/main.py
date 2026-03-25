@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from app.api import jobs, resumes
 from app.core.db import create_db_and_tables, seed_default_user
 
-app = FastAPI(title="Job Autofiller API", version="2.0.0")
+app = FastAPI(title="Job Autofiller API", version="3.0.0")
 
 
 @app.on_event("startup")

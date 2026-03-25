@@ -226,3 +226,33 @@ Adding `search_id` directly to `Job` was considered (simpler, no new tables). Re
 - Uses `session.merge()` for the link row so it's idempotent on retry
 
 **Files changed:** `app/models/models.py`, `app/api/jobs.py`, `app/worker/tasks.py`
+
+---
+
+## Phase 3 Complete — ReasoningService + Job Scoring
+
+### What was built
+
+Groq/Llama-powered resume-to-job scoring. Each job is scored 0–10 against the user's parsed resume with a fit reasoning string, stored on the `Job` row.
+
+### Files Created / Modified
+
+| File | Status | Purpose |
+|------|--------|---------|
+| `app/services/reasoning.py` | Created | `ReasoningService.score(resume_md, job_desc)` — calls Groq with truncated inputs, validates output with Pydantic, returns `{score: int, fit_reasoning: str}` |
+| `app/worker/tasks.py` | Modified | Added `score_jobs_task` (max_retries=10) and `_parse_retry_after()` helper; serially scores job list with 8s sleep between calls; catches `groq.RateLimitError` separately to use actual retry-after wait |
+| `app/api/jobs.py` | Modified | Added `POST /jobs/{job_id}/score` (single), `GET /jobs/score/{task_id}/status`, `POST /jobs/score/batch` (scores all pending jobs for a user/search) |
+| `app/core/config.py` | Modified | Added `SCORING_MODEL = llama-3.1-8b-instant` (500K TPD, separate from `LLM_MODEL` used in Phase 4) |
+| `app/main.py` | Modified | Bumped API version to `3.0.0` |
+
+### Key design decisions
+
+**Model split:** `llama-3.1-8b-instant` (500K TPD) for scoring vs `llama-3.3-70b-versatile` (100K TPD) for answer generation. Scoring runs on every job in bulk — 500K TPD headroom prevents hitting the daily cap before Phase 4 answer generation gets any tokens.
+
+**Input truncation:** `resume_markdown[:6000]` + `job_description[:4000]` keeps each call to ~1500 tokens, enabling ~8 calls/min under the 12K TPM free-tier limit.
+
+**Rate-limit retry strategy:** `score_jobs_task` has `max_retries=10`. On `groq.RateLimitError`, `_parse_retry_after()` reads the actual wait from `response.headers["retry-after"]` (with regex fallback on the message string, last resort 300s). This avoids blind fixed delays when Groq specifies the exact window.
+
+**Serial scoring with sleep:** Jobs are scored one at a time with `time.sleep(8)` between calls (not concurrent) to stay under TPM. `session.commit()` after each job so partial progress survives a task retry — idempotent because `job.status = "scored"` is set before commit.
+
+**Batch endpoint:** `POST /jobs/score/batch` queries all `status = "pending"` jobs for a user (optionally filtered by `search_id`) and dispatches a single `score_jobs_task` with the full list, so the caller doesn't need to loop.

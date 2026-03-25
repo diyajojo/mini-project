@@ -5,7 +5,7 @@ from sqlmodel import Session, select
 from app.core.db import get_session
 from app.models.models import Job, JobSearch, JobSearchResult
 from app.worker.celery_app import celery_app
-from app.worker.tasks import discover_jobs_task
+from app.worker.tasks import discover_jobs_task, score_jobs_task
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -37,6 +37,48 @@ def discover_jobs(body: DiscoverRequest, session: Session = Depends(get_session)
 def discover_status(task_id: str):
     result = celery_app.AsyncResult(task_id)
     return {"task_id": task_id, "state": result.state}
+
+
+class ScoreRequest(BaseModel):
+    resume_id: int
+
+
+class ScoreBatchRequest(BaseModel):
+    user_id: int
+    resume_id: int
+    search_id: int | None = None  # if provided, only score jobs from this search
+
+
+@router.post("/{job_id}/score")
+def score_job(job_id: int, body: ScoreRequest):
+    task = score_jobs_task.delay([job_id], body.resume_id)
+    return {"task_id": task.id, "job_id": job_id, "status": "scoring"}
+
+
+@router.get("/score/{task_id}/status")
+def score_status(task_id: str):
+    result = celery_app.AsyncResult(task_id)
+    return {"task_id": task_id, "state": result.state}
+
+
+@router.post("/score/batch")
+def score_jobs_batch(body: ScoreBatchRequest, session: Session = Depends(get_session)):
+    if body.search_id is not None:
+        jobs = session.exec(
+            select(Job)
+            .join(JobSearchResult, Job.id == JobSearchResult.job_id)
+            .where(JobSearchResult.search_id == body.search_id)
+            .where(Job.user_id == body.user_id)
+            .where(Job.status == "pending")
+        ).all()
+    else:
+        jobs = session.exec(
+            select(Job).where(Job.user_id == body.user_id, Job.status == "pending")
+        ).all()
+
+    job_ids = [job.id for job in jobs]
+    task = score_jobs_task.delay(job_ids, body.resume_id)
+    return {"task_id": task.id, "job_count": len(job_ids), "status": "scoring"}
 
 
 @router.get("/")
