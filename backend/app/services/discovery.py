@@ -17,7 +17,8 @@ class DiscoveryService:
         run = client.actor(settings.APIFY_ACTOR_ID).call(
             run_input={
                 "urls": [search_url],
-                "limit": limit,
+                "maxItems": limit,
+                "count": limit,
             }
         )
         items = client.dataset(run["defaultDatasetId"]).list_items().items

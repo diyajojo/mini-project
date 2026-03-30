@@ -47,6 +47,12 @@ uv run uvicorn app.main:app --reload
 uv run celery -A app.worker.celery_app worker --loglevel=info
 ```
 
+> **macOS Users:** If you encounter `WorkerLostError` or process forking issues, use the `--pool=solo` option:
+> ```bash
+> uv run celery -A app.worker.celery_app worker --pool=solo --loglevel=info
+> ```
+> This avoids fork-safety issues on macOS (especially on Apple Silicon or newer macOS versions).
+
 The Celery worker handles async tasks (resume parsing, job scraping, scoring). Both must be running for the full system to work.
 
 ## Step 5 — Verify
