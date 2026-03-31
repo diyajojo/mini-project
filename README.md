@@ -1,10 +1,10 @@
 # JobFlow
 
-JobFlow is a smart job application platform that streamlines your job hunt from start to finish. Upload your resume, scrape live job listings from LinkedIn, and let JobFlow automatically fill out applications on your behalf — saving you time and effort.
+JobFlow is an autonomous agentic job application platform that streamlines your job hunt from start to finish. Upload your resume, scrape live job listings from LinkedIn, score fit with AI, and let JobFlow automatically generate tailored answers for application forms via a Chrome Extension — saving you time and effort.
 
 ---
 
-## Features
+## ✨ Features
 
 - **Resume Upload** — Upload your PDF resume to power personalized job matching
 - **LinkedIn Job Scraping** — Discover relevant job listings based on role and location
@@ -15,9 +15,59 @@ JobFlow is a smart job application platform that streamlines your job hunt from 
 
 ---
 
-## Project Setup
+## 🚀 Tech Stack
 
-### Frontend
+- **Frontend:** Next.js (React)
+- **Backend:** FastAPI (Python 3.12+)
+- **Database:** PostgreSQL via SQLModel
+- **Queue/Workers:** Redis + Celery (async tasks)
+- **AI Models:** Groq API (Llama 3.1 for scoring, Llama 3.3 for answers)
+- **Scraping & Parsing:** Apify (LinkedIn), Docling (PDFs)
+
+---
+
+## 🛠️ Project Setup
+
+### 1. Backend
+
+The backend utilizes Docker, Redis, and Celery for background processing and AI integrations. `uv` is recommended for dependency management.
+
+```bash
+cd backend
+cp .env.example .env
+```
+
+Open `.env` and set your API keys:
+```env
+GROQ_API_KEY=your_groq_api_key_here
+APIFY_API_TOKEN=your_apify_token_here
+```
+
+Run the setup script to start the DB and Redis containers, and apply DB migrations:
+```bash
+./setup.sh
+```
+
+**Start the API Server and Celery Worker (requires two terminals):**
+
+**Terminal 1:**
+```bash
+cd backend
+uv run uvicorn app.main:app --reload
+```
+
+**Terminal 2:**
+```bash
+cd backend
+uv run celery -A app.worker.celery_app worker --loglevel=info
+```
+*(macOS users: If you encounter forking issues, add `--pool=solo` to the celery command).*
+
+> 📖 **For detailed backend instructions, refer to [`backend/README.md`](backend/README.md).**
+
+### 2. Frontend
+
+The frontend provides the interactive user dashboard.
 
 ```bash
 cd frontend
@@ -25,50 +75,22 @@ npm install
 npm run dev
 ```
 
-The frontend runs on `http://localhost:3000` by default.
+The frontend will be accessible at `http://localhost:3000`.
 
-### Backend
+### 3. Chrome Extension
 
-```bash
-cd backend
-pip install -r requirements.txt
-```
-
-Create a `.env` file in the `backend/` directory based on the example below:
-
-```env
-DATABASE_URL=YOUR_DATABASE_URL
-API_KEY=YOUR_API_KEY
-SECRET_KEY=YOUR_SECRET_KEY
-```
-
-Then start the server:
-
-```bash
-python main.py
-```
-
-> For detailed backend setup instructions, refer to [`backend/README.md`](backend/README.md).
+Load the `extension/` directory into your Chrome browser:
+1. Go to `chrome://extensions/`
+2. Enable **Developer mode** in the top right.
+3. Click **Load unpacked** and select the `extension/` folder in your project.
 
 ---
 
-## Project Structure
+## 📂 Project Structure
 
-```
+```text
 JobFlow/
-├── frontend/
-│   ├── app/
-│   │   ├── components/
-│   │   ├── dashboard/
-│   │   ├── guide/
-│   │   └── page.tsx
-│   └── package.json
-├── backend/
-│   ├── main.py
-│   ├── requirements.txt
-│   └── README.md
-├── extension/
-└── README.md
+├── frontend/       # Web application (dashboard, guide, components)
+├── backend/        # FastAPI API, Celery workers, DB models, and AI logic
+└── extension/      # Chrome Extension for application autofilling
 ```
-
-
