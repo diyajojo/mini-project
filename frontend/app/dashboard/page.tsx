@@ -78,6 +78,7 @@ export default function DashboardPage() {
               { num: "1", label: "Upload Resume" },
               { num: "2", label: "Search Jobs" },
               { num: "3", label: "Review & Apply" },
+              { num: "4", label: "Autofill job application form using jobflow chrome extension" },
             ].map((step, i) => (
               <div key={step.num} className="flex items-center gap-3">
                 <div className="flex items-center gap-2">

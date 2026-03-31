@@ -36,7 +36,7 @@ export default function LandingPage() {
         <Navbar />
 
         {/* ── HERO ── */}
-        <section className="max-w-6xl mx-auto px-6 pt-24 pb-20 text-center">
+        <section className="max-w-6xl mx-auto px-6 pt-12 pb-12 text-center">
           <div
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-8"
             style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)" }}
@@ -49,7 +49,7 @@ export default function LandingPage() {
 
           <h1
             className="mb-6 leading-tight"
-            style={{ color: "#ecfdf5", fontWeight: 900, fontSize: "clamp(2.5rem, 6vw, 4.25rem)", letterSpacing: "-0.04em", lineHeight: 1.1 }}
+            style={{ color: "#ecfdf5", fontWeight: 900, fontSize: "clamp(2.5rem, 6vw, 3.5rem)", letterSpacing: "-0.04em", lineHeight: 1.1 }}
           >
             Your resume.{" "}
             <span style={{ color: "#10b981" }}>Your dream job.</span>
@@ -66,51 +66,13 @@ export default function LandingPage() {
             smarter, not harder.
           </p>
 
-          {/* CTA Buttons */}
-          <div className="flex items-center justify-center gap-4 flex-wrap">
-            <Link href="/dashboard" style={{ textDecoration: "none" }}>
-              <span
-                className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-2xl font-bold"
-                style={{
-                  background: "linear-gradient(135deg, #059669, #10b981)",
-                  color: "#ecfdf5",
-                  fontSize: "1rem",
-                  letterSpacing: "-0.01em",
-                  boxShadow: "0 6px 24px rgba(16,185,129,0.4)",
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                Get Started
-              </span>
-            </Link>
-
-            <Link href="/guide" style={{ textDecoration: "none" }}>
-              <span
-                className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-2xl font-bold"
-                style={{
-                  background: "rgba(16,185,129,0.07)",
-                  color: "#6ee7b7",
-                  fontSize: "1rem",
-                  letterSpacing: "-0.01em",
-                  border: "1px solid rgba(16,185,129,0.22)",
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                View Guide
-              </span>
-            </Link>
-          </div>
-
           {/* Feature badges */}
-          <div className="mt-14 flex items-center justify-center gap-4 flex-wrap">
+          <div className="mt-10 flex items-center justify-center gap-4 flex-wrap">
             {[
               { label: "Resume Parsing", icon: "📄" },
               { label: "LinkedIn Scraping", icon: "🔍" },
               { label: "AI Fit Scoring", icon: "🤖" },
+              { label: "Auto Job Filling", icon: "⚡" },
             ].map((item) => (
               <div
                 key={item.label}
@@ -125,12 +87,9 @@ export default function LandingPage() {
         </section>
 
         {/* ── WHAT IS JOBFLOW ── */}
-        <section className="py-20" style={{ borderTop: "1px solid rgba(16,185,129,0.07)" }}>
+        <section className="py-12" style={{ borderTop: "1px solid rgba(16,185,129,0.07)" }}>
           <div className="max-w-6xl mx-auto px-6">
             <div className="text-center mb-14">
-              <p style={{ color: "#10b981", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.75rem" }}>
-                About
-              </p>
               <h2 style={{ color: "#ecfdf5", fontWeight: 800, fontSize: "clamp(1.75rem, 3.5vw, 2.5rem)", letterSpacing: "-0.03em" }}>
                 What is JobFlow?
               </h2>
@@ -141,7 +100,7 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
               {[
                 {
                   icon: (
@@ -172,22 +131,31 @@ export default function LandingPage() {
                   title: "AI Fit Scoring",
                   desc: "Groq AI evaluates each job against your resume and gives a 1–10 fit score with a plain-English explanation of why it matches.",
                 },
+                {
+                  icon: (
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                      <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ),
+                  title: "Auto Job Filling",
+                  desc: "Apply with one click using our Chrome extension. It automatically fills job application forms with your parsed resume details.",
+                },
               ].map((item) => (
                 <div
                   key={item.title}
-                  className="rounded-2xl p-6"
-                  style={{ background: "linear-gradient(135deg, #071020 0%, #0a1628 100%)", border: "1px solid rgba(16,185,129,0.14)", boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
+                  className="rounded-xl p-5"
+                  style={{ background: "linear-gradient(135deg, #071020 0%, #0a1628 100%)", border: "1px solid rgba(16,185,129,0.14)", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}
                 >
                   <div
-                    className="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
+                    className="w-10 h-10 rounded-lg flex items-center justify-center mb-3"
                     style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.18)" }}
                   >
                     {item.icon}
                   </div>
-                  <h3 className="mb-2" style={{ color: "#ecfdf5", fontWeight: 700, fontSize: "1rem", letterSpacing: "-0.02em" }}>
+                  <h3 className="mb-1.5" style={{ color: "#ecfdf5", fontWeight: 700, fontSize: "0.9375rem", letterSpacing: "-0.02em" }}>
                     {item.title}
                   </h3>
-                  <p style={{ color: "#6ee7b7", fontSize: "0.875rem", lineHeight: 1.65, fontWeight: 500 }}>
+                  <p style={{ color: "#6ee7b7", fontSize: "0.8125rem", lineHeight: 1.6, fontWeight: 500 }}>
                     {item.desc}
                   </p>
                 </div>
@@ -196,137 +164,9 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ── FEATURES ── */}
-        <section className="py-20" style={{ borderTop: "1px solid rgba(16,185,129,0.07)" }}>
-          <div className="max-w-6xl mx-auto px-6">
-            <div className="text-center mb-14">
-              <p style={{ color: "#10b981", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.75rem" }}>
-                Features
-              </p>
-              <h2 style={{ color: "#ecfdf5", fontWeight: 800, fontSize: "clamp(1.75rem, 3.5vw, 2.5rem)", letterSpacing: "-0.03em" }}>
-                Everything you need to land faster
-              </h2>
-            </div>
+        
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {[
-                {
-                  tag: "Upload",
-                  title: "One-click Resume Upload",
-                  desc: "Drag and drop your PDF resume. We parse, store, and link it to every job search you run — automatically.",
-                },
-                {
-                  tag: "Scrape",
-                  title: "Real-time LinkedIn Scraping",
-                  desc: "Enter a role, location, and limit. JobFlow pulls fresh listings from LinkedIn and returns exactly as many as you need.",
-                },
-                {
-                  tag: "Score",
-                  title: "AI Match Scoring",
-                  desc: "Every job is scored 1–10 against your resume, with a detailed explanation so you can prioritize confidently.",
-                },
-                {
-                  tag: "Apply",
-                  title: "Direct Application Links",
-                  desc: "Each result links straight to LinkedIn. One click and your profile does the talking — no re-entering details.",
-                },
-              ].map((f) => (
-                <div
-                  key={f.title}
-                  className="rounded-2xl p-7 flex gap-5"
-                  style={{ background: "linear-gradient(135deg, #071020 0%, #0a1628 100%)", border: "1px solid rgba(16,185,129,0.13)", boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
-                >
-                  <div className="flex-shrink-0 pt-0.5">
-                    <span
-                      className="inline-block px-2.5 py-1 rounded-lg"
-                      style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)", color: "#10b981", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}
-                    >
-                      {f.tag}
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="mb-2" style={{ color: "#ecfdf5", fontWeight: 700, fontSize: "1rem", letterSpacing: "-0.02em" }}>
-                      {f.title}
-                    </h3>
-                    <p style={{ color: "#6ee7b7", fontSize: "0.875rem", lineHeight: 1.65, fontWeight: 500 }}>
-                      {f.desc}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── HOW IT WORKS ── */}
-        <section className="py-20" style={{ borderTop: "1px solid rgba(16,185,129,0.07)" }}>
-          <div className="max-w-6xl mx-auto px-6">
-            <div className="text-center mb-14">
-              <p style={{ color: "#10b981", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.75rem" }}>
-                How it Works
-              </p>
-              <h2 style={{ color: "#ecfdf5", fontWeight: 800, fontSize: "clamp(1.75rem, 3.5vw, 2.5rem)", letterSpacing: "-0.03em" }}>
-                Three steps to your next role
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[
-                {
-                  step: "01",
-                  title: "Upload Resume",
-                  desc: "Drag and drop your PDF. We parse it instantly and store your profile — once, for all future searches.",
-                },
-                {
-                  step: "02",
-                  title: "Search & Extract",
-                  desc: "Enter your target role, location, and how many listings you want. We scrape and rank results in real time.",
-                },
-                {
-                  step: "03",
-                  title: "Review & Apply",
-                  desc: "AI scores every job against your resume. See the reasoning, then apply directly on LinkedIn in one click.",
-                },
-              ].map((s) => (
-                <div
-                  key={s.step}
-                  className="rounded-2xl p-7 text-center"
-                  style={{ background: "linear-gradient(135deg, #071020 0%, #0a1628 100%)", border: "1px solid rgba(16,185,129,0.14)", boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
-                >
-                  <div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5"
-                    style={{ background: "linear-gradient(135deg, #065f46, #10b981)", boxShadow: "0 6px 20px rgba(16,185,129,0.3)" }}
-                  >
-                    <span style={{ color: "#ecfdf5", fontWeight: 900, fontSize: "1rem", letterSpacing: "-0.02em" }}>
-                      {s.step}
-                    </span>
-                  </div>
-                  <h3 className="mb-2" style={{ color: "#ecfdf5", fontWeight: 700, fontSize: "1.0625rem", letterSpacing: "-0.02em" }}>
-                    {s.title}
-                  </h3>
-                  <p style={{ color: "#6ee7b7", fontSize: "0.875rem", lineHeight: 1.65, fontWeight: 500 }}>
-                    {s.desc}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {/* CTA */}
-            <div className="text-center mt-14">
-              <Link href="/dashboard" style={{ textDecoration: "none" }}>
-                <span
-                  className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl font-bold"
-                  style={{ background: "linear-gradient(135deg, #059669, #10b981)", color: "#ecfdf5", fontSize: "1rem", letterSpacing: "-0.01em", boxShadow: "0 6px 28px rgba(16,185,129,0.4)" }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  Start for free — no account needed
-                </span>
-              </Link>
-            </div>
-          </div>
-        </section>
+       
 
         {/* ── FOOTER ── */}
         <footer className="py-8 text-center" style={{ borderTop: "1px solid rgba(16,185,129,0.08)" }}>
