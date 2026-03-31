@@ -1,31 +1,61 @@
+/* Floating auto-fill button injected into job application pages */
 .ai-autofill-btn {
   position: fixed;
   bottom: 24px;
   right: 24px;
   z-index: 999999;
-  padding: 12px 20px;
-  background: linear-gradient(135deg, #059669, #10b981);
-  color: #ecfdf5;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  border: none;
-  border-radius: 99px;
-  cursor: pointer;
-  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
-  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 11px 20px;
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: #ecfdf5;
+  font-family: 'Urbanist', system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  border: none;
+  border-radius: 99px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.45), 0 0 0 1px rgba(16,185,129,0.15);
+  transition: all 0.2s ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+.ai-autofill-btn::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ecfdf5;
+  opacity: 0.85;
+  animation: ai-pulse 2s ease-in-out infinite;
+  flex-shrink: 0;
 }
 
 .ai-autofill-btn:hover {
+  background: linear-gradient(135deg, #047857, #059669);
   transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(16, 185, 129, 0.5);
+  box-shadow: 0 8px 28px rgba(16, 185, 129, 0.55), 0 0 0 1px rgba(16,185,129,0.2);
+}
+
+.ai-autofill-btn:active {
+  transform: translateY(0);
 }
 
 .ai-autofill-btn:disabled {
-  opacity: 0.7;
+  opacity: 0.65;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
+}
+
+.ai-autofill-btn:disabled::before {
+  animation: none;
+  opacity: 0.4;
+}
+
+@keyframes ai-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
 }
